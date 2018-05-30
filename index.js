@@ -37,26 +37,36 @@ class Bot extends EventEmitter {
       })
   }
 
-  sendMessage (recipient, payload, cb) {
-    return request({
-      method: 'POST',
-      uri: 'https://graph.facebook.com/v2.6/me/messages',
-      qs: this._getQs(),
-      json: {
-        recipient: { id: recipient },
-        message: payload
-      }
-    })
-      .then(body => {
-        if (body.error) return Promise.reject(body.error)
-        if (!cb) return body
-        cb(null, body)
-      })
-      .catch(err => {
-        if (!cb) return Promise.reject(err)
-        cb(err)
-      })
-  }
+    sendMessage (recipient, payload, cb, tag=null) {
+        let options = {
+            method: 'POST',
+            uri: 'https://graph.facebook.com/v2.6/me/messages',
+            qs: this._getQs(),
+            json: {
+                recipient: { id: recipient },
+                message: payload,
+            }
+        };
+        if(tag!=null){
+            options.json.messaging_type = "MESSAGE_TAG";
+            options.json.tag = tag;
+        }
+        console.log(options);
+        return request(options)
+            .then(body => {
+                if (body.error) return Promise.reject(body.error)
+                if (!cb) return body
+                cb(null, body)
+            })
+            .catch(err => {
+                if (!cb) return Promise.reject(err)
+                cb(err)
+            })
+    }
+
+    sendMessageWithTag(recipient, payload, tag, cb){
+        return this.sendMessage(recipient, payload, cb, tag);
+    }
 
   sendSenderAction (recipient, senderAction, cb) {
     return request({
